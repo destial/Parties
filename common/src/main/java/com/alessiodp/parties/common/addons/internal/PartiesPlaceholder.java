@@ -82,6 +82,7 @@ public enum PartiesPlaceholder {
 	PLAYER_NICKNAME,
 	PLAYER_RANK_CHAT,
 	PLAYER_RANK_NAME,
+	SAME_PARTY,
 	SERVER_ID,
 	SERVER_NAME,
 	TAG,
@@ -213,8 +214,12 @@ public enum PartiesPlaceholder {
 	public String formatPlaceholder(PartyPlayerImpl player, PartyImpl party, String identifier) {
 		return formatPlaceholder(player, party, identifier, "");
 	}
-	
+
 	public String formatPlaceholder(PartyPlayerImpl player, PartyImpl party, String identifier, String emptyPlaceholder) {
+		return formatPlaceholder(player, party, identifier, emptyPlaceholder, null);
+	}
+	
+	public String formatPlaceholder(PartyPlayerImpl player, PartyImpl party, String identifier, String emptyPlaceholder, PartyImpl other) {
 		Matcher matcher;
 		StringBuilder sb;
 		switch (this) {
@@ -473,6 +478,8 @@ public enum PartiesPlaceholder {
 				return player != null && player.isInParty() ? plugin.getRankManager().searchRankByLevel(player.getRank()).getChat() : emptyPlaceholder;
 			case PLAYER_RANK_NAME:
 				return player != null && player.isInParty() ? plugin.getRankManager().searchRankByLevel(player.getRank()).getName() : emptyPlaceholder;
+			case SAME_PARTY:
+				return other != null && party == other ? "True" : "False";
 			case SERVER_ID:
 				return plugin.getServerId(player);
 			case SERVER_NAME:
@@ -488,7 +495,7 @@ public enum PartiesPlaceholder {
 						return emptyPlaceholder;
 				}
 			default:
-				return null;
+				return "";
 		}
 	}
 	

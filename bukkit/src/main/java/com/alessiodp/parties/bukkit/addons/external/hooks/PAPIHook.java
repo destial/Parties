@@ -6,16 +6,18 @@ import com.alessiodp.parties.common.parties.objects.PartyImpl;
 import com.alessiodp.parties.common.players.objects.PartyPlayerImpl;
 import lombok.RequiredArgsConstructor;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class PAPIHook extends PlaceholderExpansion {
+public class PAPIHook extends PlaceholderExpansion implements Relational {
 	@NotNull private final PartiesPlugin plugin;
 	
 	@Override
@@ -63,13 +65,37 @@ public class PAPIHook extends PlaceholderExpansion {
 	
 	@Override
 	public String onRequest(OfflinePlayer offlinePlayer, @NotNull String identifier) {
+		PartiesPlaceholder placeholder = PartiesPlaceholder.getPlaceholder(identifier);
+		if (placeholder == null)
+			return null;
+
 		if (offlinePlayer != null) {
 			PartyPlayerImpl partyPlayer = plugin.getPlayerManager().getPlayer(offlinePlayer.getUniqueId());
 			PartyImpl party = plugin.getPartyManager().getParty(partyPlayer.getPartyId());
 			
-			PartiesPlaceholder placeholder = PartiesPlaceholder.getPlaceholder(identifier);
-			
-			return placeholder != null ? placeholder.formatPlaceholder(partyPlayer, party, identifier) : null;
+			return placeholder.formatPlaceholder(partyPlayer, party, identifier);
+		}
+		return null;
+	}
+
+	@Override
+	public String onPlaceholderRequest(Player one, Player two, String identifier) {
+		PartiesPlaceholder placeholder = PartiesPlaceholder.getPlaceholder(identifier);
+		if (placeholder == null)
+			return null;
+
+		if (one != null && two != null) {
+			PartyPlayerImpl partyPlayerOne = plugin.getPlayerManager().getPlayer(one.getUniqueId());
+			PartyImpl partyOne = plugin.getPartyManager().getParty(partyPlayerOne.getPartyId());
+
+			PartyPlayerImpl partyPlayerTwo = plugin.getPlayerManager().getPlayer(two.getUniqueId());
+			PartyImpl partyTwo = plugin.getPartyManager().getParty(partyPlayerTwo.getPartyId());
+
+			String placeholderOne = placeholder.formatPlaceholder(partyPlayerOne, partyOne, identifier, "", partyTwo);
+			String placeholderTwo = placeholder.formatPlaceholder(partyPlayerTwo, partyTwo, identifier, "", partyOne);
+
+			if (placeholderOne != null && placeholderTwo != null)
+				return placeholderOne.equals(placeholderTwo) ? placeholderOne : "";
 		}
 		return null;
 	}
